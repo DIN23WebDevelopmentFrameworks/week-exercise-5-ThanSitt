@@ -1,17 +1,38 @@
+import React, {useState, useEffect} from 'react';
+import RecipeTagList from './RecipeTagList';
+import RecipeList from './RecipeList';
 
 const App = () => {
 
+  const [tags, setTags] = useState<string[]>([]);
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [view, setView] = useState<'tags' | 'recipes'>('tags');
+
+  useEffect(() => {
+    fetch('https://dummyjson.com/recipes/tags')
+    .then(response => response.json())
+    .then(data => setTags(data));
+  }, []);
+
+  const handleSelectTag = (tagName: string) => {
+    setSelectedTag(tagName);
+    fetch(`https://dummyjson.com/recipes/tag/${tagName}`)
+    .then(response => response.json())
+    .then(data => {
+      setRecipes(data.recipes);
+      setView('recipes');
+    });
+  }; 
 
   return (
     <div>
         <h1>ACME Recipe O'Master</h1>
-        <div>Remove this and implement recipe tag list here. </div>
-        <ul>
-        <li>On start the application displays a list of recipe tags such as 'pasta', 'cookies' etc. The tag information is loaded from an API (https://dummyjson.com/recipes/tags)</li>
-        <li> The user can click on a tag and the application will then hide the tag list and display a list of recipes matching the selected tag. The recipe information for the clicked tag is loaded from an API (https://dummyjson.com/recipes/tag/Pizza).</li>
-        <li> User can also go back to the tag list. </li>
-        <li> Each receipe is displayed as box where recipe data such as ingredients and instructions are displayed</li>
-        </ul>
+        {view === 'tags' ? (
+          <RecipeTagList tagList={tags} onSelectTag={handleSelectTag} />
+        ) : (
+          <RecipeList recipes={recipes} onBack={() => setView('tags')}/> 
+        )}
     </div>
   );
 };
